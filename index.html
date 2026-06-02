@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filter Bubble Pop — Caixin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:  #1B2A6B;
+      --red:   #E53935;
+      --bg:    #F5F7FA;
+      --card:  #FFFFFF;
+      --text:  #1A1A1A;
+      --sub:   #777777;
+      --green: #22C55E;
+      --gold:  #F59E0B;
+    }
+
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 80px;
+      overflow-x: hidden;
+    }
+
+    /* ── TOP NAV ── */
+    .topbar {
+      width: 100%;
+      background: linear-gradient(140deg, #1B2A6B 0%, #2a4494 100%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: max(18px, env(safe-area-inset-top)) 20px 20px;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .topbar-logo {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+    .topbar-divider {
+      width: 1px;
+      height: 16px;
+      background: rgba(255,255,255,0.3);
+    }
+    .topbar-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 1px;
+    }
+    .topbar-nav {
+      display: flex;
+      gap: 20px;
+    }
+    .topbar-nav a {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .topbar-nav a:hover { color: #fff; }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      width: 100%;
+      background: linear-gradient(140deg, #1B2A6B 0%, #253d8a 60%, #1f3278 100%);
+      padding: 28px 20px 32px;
+    }
+    .page-header-inner {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255,255,255,0.18);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .page-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      letter-spacing: -0.3px;
+      margin-bottom: 8px;
+    }
+    .page-sub {
+      font-size: 13px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.6;
+      max-width: 480px;
+    }
+
+    /* ── CONTENT WRAPPER ── */
+    .content {
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 20px 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* ── BIAS PANEL ── */
+    .bias-panel {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    }
+    .bias-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .bias-kicker {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .bias-headline {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .bias-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--red);
+      line-height: 1;
+      text-align: right;
+      transition: color 0.2s;
+    }
+    .bias-value-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--red);
+      text-align: right;
+      margin-top: 3px;
+      transition: color 0.2s;
+    }
+    .bar-track {
+      height: 6px;
+      background: #eee;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--navy), #4d72e0);
+      transition: width 0.6s cubic-bezier(.4,0,.2,1), background 0.2s;
+    }
+    .bar-scale {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+    .bar-scale span {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--sub);
+    }
+
+    /* ── BUBBLE CARD ── */
+    .bubble-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 18px 20px 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sub);
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #efefef;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+
+    /* ── BUBBLE FIELD ── */
+    .bubble-field {
+      position: relative;
+      min-height: 240px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      align-content: flex-start;
+      gap: 10px;
+    }
+    .empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    .empty-state.visible { opacity: 1; }
+    .empty-icon { font-size: 26px; opacity: 0.25; }
+    .empty-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--sub);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* ── BUBBLE ── */
+    .bubble {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 20px;   /* design system pill = 20px */
+      font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 600;
+      cursor: default;
+      user-select: none;
+      border: 1.5px solid;
+      transition: transform 0.2s cubic-bezier(.34,1.56,.64,1),
+                  box-shadow 0.15s;
+      animation: floatIn 0.48s cubic-bezier(.22,1.5,.4,1) both;
+      will-change: transform;
+    }
+    @keyframes floatIn {
+      from { opacity: 0; transform: scale(0.35) translateY(10px); }
+      to   { opacity: 1; transform: scale(1)   translateY(0);     }
+    }
+    .bubble:hover {
+      transform: scale(1.07);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    }
+    .bubble:active { transform: scale(0.98); }
+
+    /* sizes */
+    .bubble.xl { font-size: 14px; padding: 11px 18px; }
+    .bubble.lg { font-size: 13px; padding:  9px 16px; }
+    .bubble.sm { font-size: 11px; padding:  7px 13px; }
+    .bubble.xs { font-size: 10px; padding:  5px 11px; }
+
+    /* colour variants — navy cat-chip system */
+    .bubble.navy   { background: #EFF2FF; border-color: rgba(27,42,107,0.22);  color: var(--navy); }
+    .bubble.teal   { background: #E8F5F3; border-color: rgba(13,122,107,0.28); color: #0D6B60; }
+    .bubble.blue   { background: #EBF1F9; border-color: rgba(26,79,138,0.28);  color: #1A4F8A; }
+    .bubble.amber  { background: #FFFBEB; border-color: #FDE68A;               color: #92400E; }
+    .bubble.red    { background: #FEF2F2; border-color: rgba(229,57,53,0.28);  color: #B71C1C; }
+    .bubble.purple { background: #F5F0FF; border-color: rgba(94,58,140,0.28);  color: #5E3A8C; }
+    .bubble.slate  { background: #F5F7FA; border-color: rgba(119,119,119,0.28);color: var(--sub); }
+
+    /* ── × button ── */
+    .pop-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(229,57,53,0.10);
+      border: 1px solid rgba(229,57,53,0.30);
+      font-size: 11px;
+      color: var(--red);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.15s;
+      flex-shrink: 0;
+    }
+    .pop-btn:hover { background: rgba(229,57,53,0.22); transform: scale(1.2); }
+
+    /* ── POP ANIMATION ── */
+    @keyframes bubblePop {
+      0%   { transform: scale(1)    rotate(0deg);  opacity: 1;    filter: brightness(1);   }
+      12%  { transform: scale(1.20) rotate(-4deg); opacity: 1;    filter: brightness(1.15);}
+      26%  { transform: scale(1.06) rotate( 4deg); opacity: 1;    filter: brightness(1.4); }
+      44%  { transform: scale(1.60) rotate(-2deg); opacity: 0.82; filter: brightness(1.7); }
+      64%  { transform: scale(2.20) rotate( 5deg); opacity: 0.42; filter: brightness(2.0); }
+      82%  { transform: scale(2.90) rotate(-4deg); opacity: 0.14; filter: brightness(2.2); }
+      100% { transform: scale(3.30) rotate( 2deg); opacity: 0;    filter: brightness(2.5); }
+    }
+    @keyframes shardFly {
+      0%   { transform: translate(0,0) scale(1); opacity: 0.85; }
+      100% { transform: translate(var(--dx),var(--dy)) scale(0); opacity: 0; }
+    }
+    .popping {
+      animation: bubblePop 0.50s cubic-bezier(.4,0,.6,1) forwards !important;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 10;
+    }
+    .shard {
+      position: absolute;
+      border-radius: 999px;
+      pointer-events: none;
+      animation: shardFly 0.52s ease-out forwards;
+    }
+
+    /* ── FOOTER ROW ── */
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .popped-count {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--sub);
+    }
+    .restore-btn {
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      background: #EFF2FF;
+      border: 1.5px solid rgba(27,42,107,0.22);
+      border-radius: 14px;
+      padding: 9px 18px;
+      cursor: pointer;
+      display: none;
+      transition: opacity 0.15s, transform 0.15s;
+    }
+    .restore-btn:hover  { opacity: 0.85; }
+    .restore-btn:active { transform: scale(0.97); opacity: 0.85; }
+
+    /* ── FOOTNOTE ── */
+    .footnote {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--sub);
+      text-align: center;
+      margin-top: 28px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top nav -->
+  <nav class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-logo">Caixin 财新</span>
+      <div class="topbar-divider"></div>
+      <span class="topbar-sub">IMC DEMO</span>
+    </div>
+    <div class="topbar-nav">
+      <a href="#">Economy</a>
+      <a href="#">Finance</a>
+      <a href="#">Policy</a>
+      <a href="#">Data</a>
+    </div>
+  </nav>
+
+  <!-- Page hero header -->
+  <div class="page-header">
+    <div class="page-header-inner">
+      <div class="hero-tag">Algorithm Transparency</div>
+      <h1 class="page-title">Filter Bubble Pop UI</h1>
+      <p class="page-sub">
+        Review the topics your algorithm currently over-exposes you to.
+        Click <strong style="color:#fff">×</strong> on any bubble to remove it from your feed
+        and restore your information balance in real time.
+      </p>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Bias index -->
+    <div class="bias-panel">
+      <div class="bias-top">
+        <div>
+          <p class="bias-kicker">ALGORITHM AUDIT</p>
+          <p class="bias-headline">My Information Balance Index</p>
+        </div>
+        <div>
+          <div class="bias-value" id="biasValueNum">72</div>
+          <div class="bias-value-label" id="biasValueLabel">% BIASED</div>
+        </div>
+      </div>
+      <div class="bar-track">
+        <div class="bar-fill" id="biasFill" style="width:72%"></div>
+      </div>
+      <div class="bar-scale">
+        <span>0% — Balanced</span>
+        <span>100% — Heavily Biased</span>
+      </div>
+    </div>
+
+    <!-- Bubble card -->
+    <div class="bubble-card">
+      <p class="card-label">ACTIVE TOPIC BUBBLES — CLICK × TO REMOVE</p>
+      <div class="bubble-field" id="bubbleField">
+        <div class="empty-state" id="emptyState">
+          <div class="empty-icon">✦</div>
+          <p class="empty-text">
+            All topic bubbles removed.<br>
+            Your information balance is now <strong style="color:var(--green)">Balanced</strong>.
+          </p>
+        </div>
+      </div>
+      <div class="footer-row">
+        <p class="popped-count" id="poppedCount"></p>
+        <button class="restore-btn" id="restoreBtn" onclick="restoreAll()">↺ Restore all bubbles</button>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="footnote">UI demonstration only · Caixin IMC Campaign · 財新傳媒</p>
+
+  <script>
+    const BUBBLES = [
+      { id:'b1',  label:'#Youth_Unemployment',  size:'xl', color:'navy',   weight:22, delay:0   },
+      { id:'b2',  label:'#Real_Estate_Policy',  size:'lg', color:'teal',   weight:18, delay:60  },
+      { id:'b3',  label:'#TechRegulation',      size:'lg', color:'blue',   weight:14, delay:120 },
+      { id:'b4',  label:'#StockMarket',         size:'sm', color:'slate',  weight:8,  delay:180 },
+      { id:'b5',  label:'#Inflation',           size:'lg', color:'red',    weight:16, delay:240 },
+      { id:'b6',  label:'#GraduateJobs',        size:'xl', color:'purple', weight:20, delay:300 },
+      { id:'b7',  label:'#FDI_Policy',          size:'sm', color:'slate',  weight:6,  delay:360 },
+      { id:'b8',  label:'#USChinaTrade',        size:'lg', color:'navy',   weight:12, delay:420 },
+      { id:'b9',  label:'#GDPGrowth',           size:'sm', color:'slate',  weight:5,  delay:480 },
+      { id:'b10', label:'#CarbonPolicy',        size:'xs', color:'slate',  weight:4,  delay:540 },
+    ];
+
+    const BIAS_BASE = BUBBLES.reduce((s,b) => s + b.weight, 0);
+    let poppedIds = new Set();
+
+    const SHARD_COLORS = {
+      navy:   ['#1B2A6B','#4d72e0','#aab8f0'],
+      teal:   ['#0D6B60','#2ABBA8','#96DDD6'],
+      blue:   ['#1A4F8A','#5B8EC4','#B0CAEA'],
+      amber:  ['#92400E','#F59E0B','#FDE68A'],
+      red:    ['#E53935','#F08080','#FFCDD2'],
+      purple: ['#5E3A8C','#9B6CC8','#D4ADEE'],
+      slate:  ['#777777','#AAAAAA','#DDDDDD'],
+    };
+
+    function spawnShards(el, color) {
+      const rect  = el.getBoundingClientRect();
+      const field = document.getElementById('bubbleField').getBoundingClientRect();
+      const cx    = rect.left + rect.width  / 2 - field.left;
+      const cy    = rect.top  + rect.height / 2 - field.top;
+      const colors = SHARD_COLORS[color] || SHARD_COLORS.slate;
+      for (let i = 0; i < 12; i++) {
+        const angle = (360/12)*i + (Math.random()-0.5)*28;
+        const dist  = 55 + Math.random()*85;
+        const rad   = angle * Math.PI / 180;
+        const dx = Math.cos(rad)*dist, dy = Math.sin(rad)*dist;
+        const w  = 7 + Math.random()*11, h = 5 + Math.random()*8;
+        const delay = Math.random()*55, dur = 420 + Math.random()*130;
+        const clr = colors[Math.floor(Math.random()*colors.length)];
+        const s = document.createElement('div');
+        s.className = 'shard';
+        s.style.cssText = `left:${cx-w/2}px;top:${cy-h/2}px;width:${w}px;height:${h}px;background:${clr};--dx:${dx}px;--dy:${dy}px;animation-duration:${dur}ms;animation-delay:${delay}ms;`;
+        document.getElementById('bubbleField').appendChild(s);
+        setTimeout(() => s.remove(), dur+delay+60);
+      }
+    }
+
+    function renderBubbles() {
+      const field = document.getElementById('bubbleField');
+      field.querySelectorAll('.bubble').forEach(el => el.remove());
+      BUBBLES.forEach(b => {
+        if (poppedIds.has(b.id)) return;
+        const el = document.createElement('div');
+        el.className = `bubble ${b.size} ${b.color}`;
+        el.id = b.id;
+        el.style.animationDelay = b.delay + 'ms';
+        el.innerHTML = `<span>${b.label}</span><span class="pop-btn" title="Remove this topic" onclick="popBubble('${b.id}','${b.color}')">×</span>`;
+        field.appendChild(el);
+      });
+      updateBiasDisplay(); updateEmptyState(); updateRestoreBtn();
+    }
+
+    function popBubble(id, color) {
+      const el = document.getElementById(id);
+      if (!el || el.classList.contains('popping')) return;
+      spawnShards(el, color);
+      el.classList.add('popping');
+      poppedIds.add(id);
+      setTimeout(() => {
+        el.remove();
+        updateBiasDisplay(); updateEmptyState(); updateRestoreBtn(); updatePoppedCount();
+      }, 500);
+    }
+
+    function restoreAll() {
+      poppedIds.clear();
+      renderBubbles();
+      document.getElementById('poppedCount').textContent = '';
+    }
+
+    function updateBiasDisplay() {
+      const remaining = BUBBLES.filter(b => !poppedIds.has(b.id)).reduce((s,b)=>s+b.weight,0);
+      const pct = Math.round((remaining / BIAS_BASE) * 100);
+      document.getElementById('biasValueNum').textContent = pct;
+      document.getElementById('biasFill').style.width = pct + '%';
+      const numEl   = document.getElementById('biasValueNum');
+      const labelEl = document.getElementById('biasValueLabel');
+      const fillEl  = document.getElementById('biasFill');
+      if (pct <= 20) {
+        numEl.style.color = labelEl.style.color = 'var(--green)';
+        labelEl.textContent = '% BALANCED';
+        fillEl.style.background = 'linear-gradient(90deg, var(--navy), var(--green))';
+      } else if (pct <= 50) {
+        numEl.style.color = labelEl.style.color = '#B45309';
+        labelEl.textContent = '% MODERATE';
+        fillEl.style.background = 'linear-gradient(90deg, var(--navy), var(--gold))';
+      } else {
+        numEl.style.color = labelEl.style.color = 'var(--red)';
+        labelEl.textContent = '% BIASED';
+        fillEl.style.background = 'linear-gradient(90deg, var(--navy), #4d72e0)';
+      }
+    }
+
+    function updateEmptyState() {
+      document.getElementById('emptyState').classList.toggle('visible', poppedIds.size >= BUBBLES.length);
+    }
+    function updateRestoreBtn() {
+      document.getElementById('restoreBtn').style.display = poppedIds.size > 0 ? 'inline-block' : 'none';
+    }
+    function updatePoppedCount() {
+      const el = document.getElementById('poppedCount');
+      el.textContent = poppedIds.size > 0 ? poppedIds.size + ' topic(s) removed' : '';
+    }
+
+    renderBubbles();
+  </script>
+</body>
+</html>
